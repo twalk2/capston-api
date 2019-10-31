@@ -7,7 +7,7 @@ from flask_heroku import Heroku
 app = Flask(__name__)
 heroku = Heroku(app)
 
-app.config["SQLALCHEMY_DATABASE_URI"] = ""
+app.config["SQLALCHEMY_DATABASE_URI"] = "postgres://woetjbupgiivhu:d1ac4290cdce4bd87c492361aa34eeb69ae87a6bdc2031f55e1b2523a59e1484@ec2-23-21-94-99.compute-1.amazonaws.com:5432/dfnts0vumd52ir"
 
 CORS(app)
 
@@ -20,7 +20,7 @@ class Review(db.Model):
     resort = db.Column(db.String(100))
     rating = db.Column(db.String(100))
     name = db.Column(db.String(100))
-    comment = db.Column(db.Blob)
+    comment = db.Column(db.Text)
 
     def __init__(self, resort, rating, name, comment):
         self.resort = resort
@@ -42,33 +42,43 @@ def get_reviews():
     result = reviews_schema.dump(all_reviews)
     return jsonify(result)
 
+# @app.route("/reviews/<resort>", methods=["GET"])
+# def get_resort(resort):
+#     all_reviews = Review.query.get(resort)
+#     result = reviews_schema.dump(all_reviews)
+#     return jsonify(result)
+
 @app.route("/review", methods=["POST"])
-def add_todo():
-    title = request.json["title"]
-    done = request.json["done"]
+def add_review():
+    resort = request.json["resort"]
+    rating = request.json["rating"]
+    name = request.json["name"]
+    comment = request.json["comment"]
 
-    new_todo = Todo(title, done)
-    db.session.add(new_todo)
+    new_review = Review(resort, rating, name, comment)
+    db.session.add(new_review)
     db.session.commit()
 
-    created_todo = Todo.query.get(new_todo.id)
-    return todo_schema.jsonify(created_todo)
+    created_review = Review.query.get(new_review.id)
+    return review_schema.jsonify(created_review)
 
-@app.route("/todo/<id>", methods=["PUT"])
-def update_todo(id):
-    todo = Todo.query.get(id)
+@app.route("/review/<id>", methods=["PUT"])
+def update_review(id):
+    review = Review.query.get(id)
 
-    todo.title = request.json["title"]
-    todo.done = request.json["done"]
+    review.resort = request.json["resort"]
+    review.rating = request.json["rating"]
+    review.name = request.json["name"]
+    review.comment = request.json["comment"]
 
     db.session.commit()
-    return todo_schema.jsonify(todo)
+    return review_schema.jsonify(review)
 
-@app.route("/todo/<id>", methods=["DELETE"])
-def delete_todo(id):
-    todo = Todo.query.get(id)
+@app.route("/review/<id>", methods=["DELETE"])
+def delete_review(id):
+    review = Review.query.get(id)
 
-    db.session.delete(todo)
+    db.session.delete(review)
     db.session.commit()
 
     return "RECORD DELETED"
